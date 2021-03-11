@@ -2,7 +2,7 @@ import {createStore, combineReducers} from 'redux'
 import filterReducer from "./reducers/filter/filterReducer";
 import pizzasReducer from "./reducers/pizza/pizzasReducer";
 const rootReducer = combineReducers({
-
+//test
   filterReducer:filterReducer,
    pizzasReducer: pizzasReducer
 })
