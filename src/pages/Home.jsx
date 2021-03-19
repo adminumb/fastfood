@@ -1,52 +1,76 @@
-import {Categories, SortPopup} from "../pageComponents";
-import React from "react";
-import PizzaBlock from "./PizzaBlock";
-import {useSelector, useDispatch} from "react-redux";
-import {setCategory} from "../redux/reducers/filter/filterReducer";
+import React from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 
-const Home=()=>{
+import { Categories, SortPopup, PizzaBlock, PizzaLoadingBlock } from '../components';
 
-    const dispatch=useDispatch()
+import { setCategory, setSortBy } from '../redux/actions/filters';
+import { fetchPizzas } from '../redux/actions/pizzas';
+import { addPizzaToCart } from '../redux/actions/cart';
 
-  // const items =useSelector(state=>{
-  //     return {
-  //         items: state.pizzas.items,
-  //     }
-  //   })
+const categoryNames = ['Мясные', 'Вегетарианская', 'Гриль', 'Острые', 'Закрытые'];
+const sortIems = [
+  { name: 'популярности', type: 'popular', order: 'desc' },
+  { name: 'цене', type: 'price', order: 'desc' },
+  { name: 'алфавит', type: 'name', order: 'asc' },
+];
 
-   const items= useSelector(({pizzasReducer})=>pizzasReducer.items)
+function Home() {
+  const dispatch = useDispatch();
+  const items = useSelector(({ pizzas }) => pizzas.items);
+  const cartItems = useSelector(({ cart }) => cart.items);
+  const isLoaded = useSelector(({ pizzas }) => pizzas.isLoaded);
+  const { category, sortBy } = useSelector(({ filters }) => filters);
 
-    const onSelectCategory=index=>{
-        dispatch(setCategory(index))
-    }
+  React.useEffect(() => {
+    dispatch(fetchPizzas(sortBy, category));
+  }, [category, sortBy]);
 
-    return(
+  const onSelectCategory = React.useCallback((index) => {
+    dispatch(setCategory(index));
+  }, []);
 
-        <div className="container">
-            <div className="content__top">
-                <Categories  onClickItem={(name)=>console.log(name)} items={[ 'Мясные', 'Вегетарианская',
-                    'Гриль',
-                    'Острые',
-                    'Закрытые']} />
+  const onSelectSortType = React.useCallback((type) => {
+    dispatch(setSortBy(type));
+  }, []);
 
-                <SortPopup items={[
-                    {name:'популярности', type:'popular'},
-                    {name:'цене', type:'price'},
-                    {name:'алфавиту', type:'alphabet'}]}/>
-            </div>
-            <h2 className="content__title">Все пиццы</h2>
-            <div className="content__items">
+  const handleAddPizzaToCart = (obj) => {
+    dispatch({
+      type: 'ADD_PIZZA_CART',
+      payload: obj,
+    });
+  };
 
-                {items.map((n)=>(<PizzaBlock key={n.id} name={n.name} src={n.imageUrl} price={n.price} types={n.types} /> ))
-                }
-<PizzaBlock/>
-<PizzaBlock/>
-
-            </div>
-        </div>
-
-
-
-    )
+  return (
+    <div className="container">
+      <div className="content__top">
+        <Categories
+          activeCategory={category}
+          onClickCategory={onSelectCategory}
+          items={categoryNames}
+        />
+        <SortPopup
+          activeSortType={sortBy.type}
+          items={sortIems}
+          onClickSortType={onSelectSortType}
+        />
+      </div>
+      <h2 className="content__title">Все пиццы</h2>
+      <div className="content__items">
+        {isLoaded
+          ? items.map((obj) => (
+              <PizzaBlock
+                onClickAddPizza={handleAddPizzaToCart}
+                key={obj.id}
+                addedCount={cartItems[obj.id] && cartItems[obj.id].items.length}
+                {...obj}
+              />
+            ))
+          : Array(12)
+              .fill(0)
+              .map((_, index) => <PizzaLoadingBlock key={index} />)}
+      </div>
+    </div>
+  );
 }
-export default Home
+
+export default Home;
