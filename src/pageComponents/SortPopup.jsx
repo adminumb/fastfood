@@ -49,7 +49,7 @@ const SortPopup=({items})=>{
                     />
                 </svg>
                 <b>Сортировка по:</b>
-                <span onClick={toggleVisiblePopup}>{activeLabel}</span>
+                <span onClick={toggleVisiblePopup}>{"activeLabel"}</span>
             </div>
             { visiblePopup  && <div className="sort__popup">
                 <ul>
